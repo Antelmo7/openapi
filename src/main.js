@@ -26,14 +26,23 @@ app.use((err, req, res, next) => {
   });
 });
 
+app.use('/docs', swaggerUI.serve, swaggerUI.setup(swaggerDocument));
+
 app.use('/', (req, res) => {
   res.send('API First course');
 });
 
-app.use('/docs', swaggerUI.serve, swaggerUI.setup(swaggerDocument));
-
 app.get('/hello', (req, res) => {
   res.json({ message: 'Hello World' });
+});
+
+app.post('/users', (req, res) => {
+  const body = req.body;
+
+  res.status(201).json({
+    id: 1,
+    ...body,
+  });
 });
 
 app.listen(port, () => {
