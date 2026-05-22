@@ -124,7 +124,6 @@ paths:
                 name:
                   type: string
                   minLength: 2
-                age:
       responses:
         "200":
           description: User updated
