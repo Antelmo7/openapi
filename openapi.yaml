@@ -11,6 +11,32 @@ components:
       type: string
     HelloResponse:
       type: object
+      required:
+        - message
+      properties:
+        message:
+          type: string
+    ErrorResponse:
+      type: object
+      required:
+        - message
+      properties:
+        message:
+          type: string
+    ProductRating:
+      type: object
+      required:
+        - score
+        - comments
+      properties:
+        score:
+          type: integer
+          minimum: 1
+          maximum: 5
+        comments:
+          type: string
+          maxLength: 200
+      additionalProperties: false
     Product:
       type: object
       required:
@@ -22,7 +48,7 @@ components:
           type: string
           minLength: 2
           maxLength: 100
-        description::
+        description:
           type: string
           maxLength: 500
         price:
@@ -46,17 +72,52 @@ components:
         rating:
           type: array
           items:
-            required:
-              - score
-              - comments
-            properties:
-              score:
-                type: integer
-                minimum:: 1
-                maximun: 5
-              comments:
-                type: string
-                maxLength:: 200
+            $ref: "#/components/schemas/ProductRating"
+      additionalProperties: false
+    ProductWithId:
+      allOf:
+        - $ref: "#/components/schemas/Product"
+        - type: object
+          required:
+            - id
+          properties:
+            id:
+              type: integer
+              minimum: 1
+    ProductUpdate:
+      type: object
+      minProperties: 1
+      properties:
+        name:
+          type: string
+          minLength: 2
+          maxLength: 100
+        description:
+          type: string
+          maxLength: 500
+        price:
+          type: number
+          minimum: 0
+          multipleOf: 0.01
+        category:
+          type: string
+          enum: [electronics, book, clothes, food]
+        tags:
+          type: array
+          items:
+            type: string
+          minItems: 1
+        inStock:
+          type: boolean
+        specs:
+          type: object
+          additionalProperties:
+            type: string
+        rating:
+          type: array
+          items:
+            $ref: "#/components/schemas/ProductRating"
+      additionalProperties: false
 paths:
   /:
     get:
@@ -147,9 +208,7 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  message: string
+                $ref: "#/components/schemas/ErrorResponse"
     patch:
       summary: Update user by ID
       parameters:
@@ -191,6 +250,80 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  message: string
+                $ref: "#/components/schemas/ErrorResponse"
+  /products:
+    get:
+      summary: List all products
+      responses:
+        "200":
+          description: Product list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ProductWithId"
+    post:
+      summary: Create a new product
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Product"
+      responses:
+        "201":
+          description: Product created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProductWithId"
+  /products/{id}:
+    get:
+      summary: Get product by ID
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Product found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProductWithId"
+        "404":
+          description: Product not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    patch:
+      summary: Update product by ID
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ProductUpdate"
+      responses:
+        "200":
+          description: Product updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProductWithId"
+        "404":
+          description: Product not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
