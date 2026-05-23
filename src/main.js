@@ -2,9 +2,14 @@ import express from 'express';
 import swaggerUI from 'swagger-ui-express';
 import YAML from 'yamljs';
 import OpenApiValidator from 'express-openapi-validator';
+import jwt from 'jsonwebtoken';
 
 const app = express();
 const port = 3000;
+const jwtSecret = process.env.JWT_SECRET || 'dev-secret-key';
+const jwtExpiresIn = '1h';
+const authEmail = process.env.AUTH_EMAIL || 'jane@example.com';
+const authPassword = process.env.AUTH_PASSWORD || 'password123';
 
 const swaggerDocument = YAML.load('./openapi.yaml');
 const users = new Map([
@@ -61,6 +66,62 @@ app.get('/v1/hello', (req, res) => {
 app.get('/v2/hello', (req, res) => {
   res.json({ message: 'Hello World', timestamp: new Date().toISOString() });
 });
+
+app.post('/auth/login', (req, res) => {
+  const { email, password } = req.body;
+
+  if (email !== authEmail || password !== authPassword) {
+    return res.status(401).json({
+      message: 'Invalid credentials',
+    });
+  }
+
+  const accessToken = jwt.sign(
+    {
+      sub: email,
+      email,
+    },
+    jwtSecret,
+    {
+      expiresIn: jwtExpiresIn,
+    }
+  );
+
+  return res.json({
+    accessToken,
+    tokenType: 'Bearer',
+    expiresIn: 3600,
+  });
+});
+
+const authenticateToken = (req, res, next) => {
+  const authorizationHeader = req.headers.authorization;
+
+  if (!authorizationHeader) {
+    return res.status(401).json({
+      message: 'Missing bearer token',
+    });
+  }
+
+  const [scheme, token] = authorizationHeader.split(' ');
+
+  if (scheme !== 'Bearer' || !token) {
+    return res.status(401).json({
+      message: 'Invalid bearer token',
+    });
+  }
+
+  try {
+    req.user = jwt.verify(token, jwtSecret);
+    return next();
+  } catch {
+    return res.status(401).json({
+      message: 'Invalid or expired token',
+    });
+  }
+};
+
+app.use(authenticateToken);
 
 app.post('/users', (req, res) => {
   const user = {

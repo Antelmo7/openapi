@@ -28,6 +28,12 @@ servers:
   - url: http://localhost:3000/v2
     description: API V2
 components:
+  securitySchemes:
+    JWT:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: JWT Token for auth
   schemas:
     HomeResponse:
       type: string
@@ -268,9 +274,48 @@ components:
           minLength: 2
       example:
         name: Jane Smith
+    AuthLoginRequest:
+      type: object
+      required:
+        - email
+        - password
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+          minLength: 8
+      additionalProperties: false
+      example:
+        email: jane@example.com
+        password: password123
+    AuthLoginResponse:
+      type: object
+      required:
+        - accessToken
+        - tokenType
+        - expiresIn
+      properties:
+        accessToken:
+          type: string
+        tokenType:
+          type: string
+          enum: [Bearer]
+        expiresIn:
+          type: integer
+          minimum: 1
+      additionalProperties: false
+      example:
+        accessToken: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.example.signature
+        tokenType: Bearer
+        expiresIn: 3600
+security:
+  - JWT: []
 paths:
   /:
     get:
+      security: []
       summary: Home
       responses:
         "200":
@@ -281,6 +326,7 @@ paths:
                 $ref: "#/components/schemas/HomeResponse"
   /hello:
     get:
+      security: []
       summary: Hello World
       responses:
         "200":
@@ -289,6 +335,29 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HelloResponse"
+  /auth/login:
+    post:
+      security: []
+      summary: Login with email and password
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AuthLoginRequest"
+      responses:
+        "200":
+          description: Access token issued
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthLoginResponse"
+        "401":
+          description: Invalid credentials
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
   /users:
     post:
       tags:
