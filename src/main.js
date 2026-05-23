@@ -54,8 +54,12 @@ app.get('/', (req, res) => {
   res.json('API First course');
 });
 
-app.get('/hello', (req, res) => {
+app.get('/v1/hello', (req, res) => {
   res.json({ message: 'Hello World' });
+});
+
+app.get('/v2/hello', (req, res) => {
+  res.json({ message: 'Hello World', timestamp: new Date().toISOString() });
 });
 
 app.post('/users', (req, res) => {
@@ -162,5 +166,7 @@ app.use((err, req, res, next) => {
 });
 
 app.listen(port, () => {
-  console.log(`Listening on http://localhost:${port}`);
+  console.log(`Listening on http://localhost:${port}/docs`);
+  console.log(`Listening on http://localhost:${port}/v1`);
+  console.log(`Listening on http://localhost:${port}/v2`);
 });
