@@ -31,6 +31,7 @@ components:
   schemas:
     HomeResponse:
       type: string
+      example: Welcome to FakeAPI Store
     HelloResponse:
       type: object
       required:
@@ -38,6 +39,8 @@ components:
       properties:
         message:
           type: string
+      example:
+        message: Hello World
     ErrorResponse:
       type: object
       required:
@@ -45,6 +48,8 @@ components:
       properties:
         message:
           type: string
+      example:
+        message: Resource not found
     ProductRating:
       type: object
       required:
@@ -59,6 +64,9 @@ components:
           type: string
           maxLength: 200
       additionalProperties: false
+      example:
+        score: 5
+        comments: Excellent quality and fast shipping.
     Product:
       type: object
       required:
@@ -70,6 +78,7 @@ components:
           type: string
           minLength: 2
           maxLength: 100
+          example: "Product 1"
         description:
           type: string
           maxLength: 500
@@ -96,6 +105,21 @@ components:
           items:
             $ref: "#/components/schemas/ProductRating"
       additionalProperties: false
+      example:
+        name: Product 1
+        description: Wireless headphones with noise cancellation.
+        price: 129.99
+        category: electronics
+        tags:
+          - audio
+          - wireless
+        inStock: true
+        specs:
+          color: black
+          battery: 30h
+        rating:
+          - score: 5
+            comments: Great sound and comfort.
     ProductWithId:
       type: object
       required:
@@ -137,6 +161,22 @@ components:
           items:
             $ref: "#/components/schemas/ProductRating"
       additionalProperties: false
+      example:
+        id: 1
+        name: Product 1
+        description: Wireless headphones with noise cancellation.
+        price: 129.99
+        category: electronics
+        tags:
+          - audio
+          - wireless
+        inStock: true
+        specs:
+          color: black
+          battery: 30h
+        rating:
+          - score: 5
+            comments: Great sound and comfort.
     ProductUpdate:
       type: object
       minProperties: 1
@@ -171,6 +211,63 @@ components:
           items:
             $ref: "#/components/schemas/ProductRating"
       additionalProperties: false
+      example:
+        price: 119.99
+        inStock: false
+        tags:
+          - audio
+          - sale
+    UserCreate:
+      type: object
+      required:
+        - name
+        - age
+        - email
+      properties:
+        name:
+          type: string
+          minLength: 2
+        age:
+          type: integer
+          minimum: 18
+        email:
+          type: string
+          format: email
+      example:
+        name: Jane Doe
+        age: 28
+        email: jane.doe@example.com
+    UserWithId:
+      type: object
+      required:
+        - id
+        - name
+        - age
+        - email
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        age:
+          type: integer
+        email:
+          type: string
+      example:
+        id: 1
+        name: Jane Doe
+        age: 28
+        email: jane.doe@example.com
+    UserUpdate:
+      type: object
+      required:
+        - name
+      properties:
+        name:
+          type: string
+          minLength: 2
+      example:
+        name: Jane Smith
 paths:
   /:
     get:
@@ -202,37 +299,14 @@ paths:
         content:
           application/json:
             schema:
-              type: object
-              required:
-                - name
-                - age
-                - email
-              properties:
-                name:
-                  type: string
-                  minLength: 2
-                age:
-                  type: integer
-                  minimum: 18
-                email:
-                  type: string
-                  format: email
+              $ref: "#/components/schemas/UserCreate"
       responses:
         "201":
           description: User created
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  id:
-                    type: integer
-                  name:
-                    type: string
-                  age:
-                    type: integer
-                  email:
-                    type: string
+                $ref: "#/components/schemas/UserWithId"
   /users/{id}:
     get:
       tags:
@@ -250,16 +324,7 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  id:
-                    type: integer
-                  name:
-                    type: string
-                  age:
-                    type: integer
-                  email:
-                    type: string
+                $ref: "#/components/schemas/UserWithId"
         "404":
           description: User not found
           content:
@@ -281,29 +346,14 @@ paths:
         content:
           application/json:
             schema:
-              type: object
-              required:
-                - name
-              properties:
-                name:
-                  type: string
-                  minLength: 2
+              $ref: "#/components/schemas/UserUpdate"
       responses:
         "200":
           description: User updated
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  id:
-                    type: integer
-                  name:
-                    type: string
-                  age:
-                    type: integer
-                  email:
-                    type: string
+                $ref: "#/components/schemas/UserWithId"
         "404":
           description: User not found
           content:
